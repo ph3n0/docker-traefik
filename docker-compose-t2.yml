@@ -208,11 +208,11 @@ services:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.organizr-rtr.entrypoints=https"
-      - "traefik.http.routers.organizr-rtr.rule=Host(`$DOMAINNAME`,`www.$DOMAINNAME`)" 
+      - "traefik.http.routers.organizr-rtr.rule=Host(`$DOMAINNAME`,`www.$DOMAINNAME`)"
       - "traefik.http.routers.organizr-rtr.tls=true"
       - "traefik.http.routers.organizr-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.organizr-rtr.middlewares=noauth-chain@file" 
+      - "traefik.http.routers.organizr-rtr.middlewares=noauth-chain@file"
 #      - "traefik.http.middlewares.organizr-headers.headers.customResponseHeaders.sslHost=$DOMAINNAME"
 #      - "traefik.http.middlewares.organizr-headers.headers.customResponseHeaders='X-Robots-Tag:noindex,nofollow,nosnippet,noarchive,notranslate,noimageindex'"
 #      - "traefik.http.middlewares.organizr-headers.headers.browserxssfilter=true"
@@ -221,6 +221,37 @@ services:
       ## HTTP Services
       - "traefik.http.routers.organizr-rtr.service=organizr-svc"
       - "traefik.http.services.organizr-svc.loadbalancer.server.port=80"
+
+## Ombi - Request System
+  ombi:
+    container_name: ombi
+    restart: always
+    image: linuxserver/ombi
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${USERDIR}/docker/ombi:/config
+    ports:
+#      - "XXXX:3579"  # Do not foget to open a port if wanted.
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    networks:
+      - t2_proxy
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.ombi-rtr.entrypoints=https"
+      - "traefik.http.routers.ombi-rtr.rule=Host(`ombi.$DOMAINNAME`)"
+      - "traefik.http.routers.ombi-rtr.tls=true"
+      - "traefik.http.routers.ombi-rtr.tls.certresolver=dns-cloudflare"
+      ## Middlewares
+      - "traefik.http.routers.ombi-rtr.middlewares=secure-chain@file"
+      ## HTTP Services
+      - "traefik.http.routers.ombi-rtr.service=ombi-svc"
+      - "traefik.http.services.ombi-svc.loadbalancer.server.port=3579"
+
+
 
 ## Heimdall - Homepage
   heimdall:
@@ -276,7 +307,7 @@ services:
 
 ############################# SMART HOME
 
-# HA-Dockermon - Manage Docker containers in Home Assistant 
+# HA-Dockermon - Manage Docker containers in Home Assistant
   ha-dockermon:
     image: philhawthorne/ha-dockermon
     container_name: ha-dockermon
@@ -304,7 +335,7 @@ services:
       - "${MOSQUITTO_HTTP_PORT}:1883" #http
 #      - "9001:9001" #websockets
 #      - "${MOSQUITTO_HTTPS_PORT}:8883" #https
-    volumes: 
+    volumes:
       - ${USERDIR}/docker/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ${USERDIR}/docker/mosquitto/config/passwd:/mosquitto/config/passwd
       - ${USERDIR}/docker/shared:/shared
@@ -313,7 +344,7 @@ services:
       PGID: ${PGID}
       TZ: ${TZ}
 
-# ZoneMinder - Video Surveillance 
+# ZoneMinder - Video Surveillance
 # Create the database and initial tables using the init script. Database zm, username zmuser, and password zmpass - cannot customize zm, zmuser, or zmpass.
   zoneminder:
     image: quantumobject/docker-zoneminder
@@ -368,7 +399,7 @@ services:
     environment:
       - TZ=${TZ}
     network_mode: host
-#    user: "0"    
+#    user: "0"
     volumes:
       - ${USERDIR}/docker/miflora-mqtt/config:/config
     restart: unless-stopped
@@ -383,7 +414,7 @@ services:
     networks:
       - default
 #      - traefik_proxy:
-#          ipv4_address: 192.168.50.250 
+#          ipv4_address: 192.168.50.250
     ports:
       - "3306:3306"
     volumes:
@@ -475,7 +506,7 @@ services:
     volumes:
       - $USERDIR/docker/grafana:/var/lib/grafana
     environment:
-      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel" 
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel"
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
@@ -924,7 +955,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ${USERDIR}/docker/embyms:/config
-      - /dev/shm:/transcode      
+      - /dev/shm:/transcode
       - /media:/nas
       - ${USERDIR}/Downloads:/downloads
     environment:
@@ -976,7 +1007,7 @@ services:
       - "traefik.http.routers.tautulli-rtr.service=tautulli-svc"
       - "traefik.http.services.tautulli-svc.loadbalancer.server.port=8181"
 
-# Plex-Sync - For Syncing watched status between plex servers 
+# Plex-Sync - For Syncing watched status between plex servers
   plex-sync:
     image: patsissons/plex-sync:develop
     container_name: plex-sync
@@ -1247,11 +1278,11 @@ services:
   firefox:
     image: jlesage/firefox
     container_name: firefox
-    hostname: firefox 
+    hostname: firefox
     restart: unless-stopped
-    networks: 
+    networks:
       - t2_proxy
-#    ports: 
+#    ports:
 #      - "${FIREFOX_PORT}:5800"
     volumes:
       - ${USERDIR}/docker/firefox:/config
@@ -1405,7 +1436,7 @@ services:
       - "traefik.http.routers.qdirstat-rtr.service=qdirstat-svc"
       - "traefik.http.services.qdirstat-svc.loadbalancer.server.port=5800"
 
-# Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser 
+# Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser
 # Create all databases and tables first
   guacamole:
     image: guacamole/guacamole
@@ -1436,7 +1467,7 @@ services:
       - "traefik.http.routers.guacamole-rtr.tls=true"
       - "traefik.http.routers.guacamole-rtr.tls.certresolver=dns-cloudflare"
       ## Middlewares
-      - "traefik.http.routers.guacamole-rtr.middlewares=secure-chain@file,add-guacamole" 
+      - "traefik.http.routers.guacamole-rtr.middlewares=secure-chain@file,add-guacamole"
       - "traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole"
       ## HTTP Services
       - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
@@ -1507,7 +1538,7 @@ services:
       IGNORE: traefik influxdb hassio_dns homeassistant hassio_supervisor addon_core_check_config addon_62c7908d_autobackup plexms
       NOTIFIERS: 'tgram://${TGRAM_BOT_TOKEN}/${TGRAM_CHAT_ID}/'
 
-# Docker-GC - Automatic Docker Garbage Collection 
+# Docker-GC - Automatic Docker Garbage Collection
 # Create docker-gc-exclude file
   dockergc:
     image: clockworksoul/docker-gc-cron:latest
